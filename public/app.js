@@ -54,8 +54,8 @@
     tryStart();
     // fill the rest in small batches so it never blocks scrolling
     const rest = order.filter(i => !frames[i]);
-    for (let k = 0; k < rest.length; k += 6) {
-      await Promise.all(rest.slice(k, k + 6).map(loadFrame));
+    for (let k = 0; k < rest.length; k += 10) {
+      await Promise.all(rest.slice(k, k + 10).map(loadFrame));
     }
   }
 
@@ -63,7 +63,7 @@
   const cv = $('#cv'), ctx = cv.getContext('2d', { alpha: false });
   let cw = 0, ch = 0, lastDrawn = -1;
   function resize() {
-    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const dpr = Math.min(devicePixelRatio || 1, innerWidth < 900 ? 1.5 : 2);
     const r = cv.getBoundingClientRect();
     cw = Math.max(1, Math.round(r.width * dpr));
     ch = Math.max(1, Math.round(r.height * dpr));
@@ -77,12 +77,23 @@
     }
     return null;
   }
-  function draw(i) {
-    const im = nearest(i);
-    if (!im) return;
+  function paint(im, alpha) {
     const s = Math.max(cw / im.naturalWidth, ch / im.naturalHeight);
     const w = im.naturalWidth * s, hh = im.naturalHeight * s;
+    ctx.globalAlpha = alpha;
     ctx.drawImage(im, (cw - w) / 2, (ch - hh) / 2, w, hh);
+    ctx.globalAlpha = 1;
+  }
+  // draws between two neighbouring frames so motion is continuous, never stepped
+  function draw(pos) {
+    const a = Math.floor(pos), t = pos - a;
+    const A = nearest(a);
+    if (!A) return;
+    paint(A, 1);
+    if (t > 0.03) {
+      const B = nearest(Math.min(a + 1, TOTAL - 1));
+      if (B && B !== A) paint(B, t);
+    }
   }
 
   /* ---------- hero scroll ---------- */
@@ -104,18 +115,21 @@
     $('#nav').classList.toggle('solid', past);
     $('#waBtn').classList.toggle('show', past);
   }
-  function loop() {
-    cur += (target - cur) * (reduce ? 1 : 0.14);
-    if (Math.abs(target - cur) < 0.01) cur = target;
-    const f = Math.round(cur);
-    if (f !== lastDrawn && started) { draw(f); lastDrawn = f; }
+  let lastT = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - lastT) / 1000 || 0.016); lastT = now;
+    // time-based easing: same feel at 60Hz and 120Hz, glides to a stop when scrolling stops
+    cur += (target - cur) * (reduce ? 1 : 1 - Math.exp(-dt * 9));
+    if (Math.abs(target - cur) < 0.004) cur = target;
+    const key = Math.round(cur * 40);
+    if (key !== lastDrawn && started) { draw(cur); lastDrawn = key; }
     requestAnimationFrame(loop);
   }
 
   function tryStart() {
     if (started || coarseDone < coarse.length || !contentReady) return;
     started = true;
-    resize(); onScroll(); cur = target; draw(Math.round(cur)); lastDrawn = Math.round(cur);
+    resize(); onScroll(); cur = target; draw(cur); lastDrawn = Math.round(cur * 40);
     const L = $('#loader');
     L.classList.add('done');
     document.body.classList.remove('loading');
@@ -294,7 +308,7 @@
   });
 
   /* ---------- boot ---------- */
-  loop();
+  requestAnimationFrame(loop);
   loadAll();
   getContent().then(c => { render(c); contentReady = true; tryStart(); }).catch(() => { contentReady = true; tryStart(); });
 })();
