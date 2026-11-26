@@ -23,14 +23,17 @@
   });
 
   /* ---------- frame sequence ---------- */
-  const TOTAL = 120;
+  const SET = new URLSearchParams(location.search).get('f') === '120' ? 120 : 240;   // ?f=120 loads the older 120-frame set
+  const TOTAL = SET, DIR = SET === 120 ? '/frames/' : (innerWidth >= 1100 ? '/frames240hd/' : '/frames240/');
   const frames = new Array(TOTAL);
   const loaded = [];
   const order = [];
-  [8, 4, 2, 1].forEach((st, pass, arr) => {
-    for (let i = 0; i < TOTAL; i += st) if (!order.includes(i)) order.push(i);
+  const CS = TOTAL / 15;                       // ~15 frames make the hero scrub-ready
+  const seen = new Set();
+  [CS, CS / 2, CS / 4, CS / 8, CS / 16, 1].filter(st => st >= 1).forEach(st => {
+    for (let i = 0; i < TOTAL; i += st) if (!seen.has(i)) { seen.add(i); order.push(i); }
   });
-  const coarse = order.filter(i => i % 8 === 0);
+  const coarse = order.filter(i => i % CS === 0);
   let coarseDone = 0, contentReady = false, started = false;
   const pad = n => String(n + 1).padStart(3, '0');
 
@@ -40,7 +43,7 @@
       im.decoding = 'async';
       im.onload = () => { frames[i] = im; res(i); };
       im.onerror = () => res(i);
-      im.src = `/frames/f${pad(i)}.webp`;
+      im.src = `${DIR}f${pad(i)}.webp`;
     });
   }
   async function loadAll() {
@@ -69,28 +72,50 @@
     ch = Math.max(1, Math.round(r.height * dpr));
     cv.width = cw; cv.height = ch; lastDrawn = -1;
   }
+  const bmps = new Map();                      // decoded frames near the playhead, so drawing is instant
+  const pending = new Set();
+  function window_(c, dir) {
+    const lo = Math.max(0, c - 4), hi = Math.min(TOTAL - 1, c + (SET === 240 ? 16 : 18));
+    for (const [k, b] of bmps) if (k < lo || k > hi) { b.close && b.close(); bmps.delete(k); }
+    if (!window.createImageBitmap) return;
+    let budget = 3;                            // never decode a burst in one tick
+    for (let k = c; k <= hi + 0 && budget > 0; k++) {
+      if (k >= lo && frames[k] && !bmps.has(k) && !pending.has(k)) { budget--;
+        pending.add(k);
+        createImageBitmap(frames[k]).then(b => { pending.delete(k); if (k >= lo - 8 && k <= hi + 8) bmps.set(k, b); else b.close(); }).catch(() => pending.delete(k));
+      }
+    }
+    for (let k = c - 1; k >= lo && budget > 0; k--) {
+      if (frames[k] && !bmps.has(k) && !pending.has(k)) { budget--; pending.add(k);
+        createImageBitmap(frames[k]).then(b => { pending.delete(k); bmps.set(k, b); }).catch(() => pending.delete(k));
+      }
+    }
+  }
+  function src(i) { return bmps.get(i) || frames[i]; }
   function nearest(i) {
-    if (frames[i]) return frames[i];
+    if (src(i)) return src(i);
     for (let d = 1; d < TOTAL; d++) {
-      if (frames[i - d]) return frames[i - d];
-      if (frames[i + d]) return frames[i + d];
+      if (src(i - d)) return src(i - d);
+      if (src(i + d)) return src(i + d);
     }
     return null;
   }
   function paint(im, alpha) {
-    const s = Math.max(cw / im.naturalWidth, ch / im.naturalHeight);
-    const w = im.naturalWidth * s, hh = im.naturalHeight * s;
+    const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
+    const s = Math.max(cw / iw, ch / ih);
+    const w = iw * s, hh = ih * s;
     ctx.globalAlpha = alpha;
     ctx.drawImage(im, (cw - w) / 2, (ch - hh) / 2, w, hh);
     ctx.globalAlpha = 1;
   }
   // draws between two neighbouring frames so motion is continuous, never stepped
   function draw(pos) {
-    const a = Math.floor(pos), t = pos - a;
+    const a = SET === 240 ? Math.round(pos) : Math.floor(pos), t = pos - a;
+    window_(a);
     const A = nearest(a);
     if (!A) return;
     paint(A, 1);
-    if (t > 0.01) {
+    if (SET !== 240 && t > 0.01) {
       const B = nearest(Math.min(a + 1, TOTAL - 1));
       if (B && B !== A) paint(B, t);
     }
