@@ -144,7 +144,7 @@
   function loop(now) {
     const dt = Math.min(0.05, (now - lastT) / 1000 || 0.016); lastT = now;
     // time-based easing: same feel at 60Hz and 120Hz, glides to a stop when scrolling stops
-    cur += (target - cur) * (reduce ? 1 : 1 - Math.exp(-dt * 5.5));
+    cur += (target - cur) * (reduce ? 1 : 1 - Math.exp(-dt * 8.5));
     if (Math.abs(target - cur) < 0.002) cur = target;
     const key = Math.round(cur * 100);
     if (key !== lastDrawn && started) { draw(cur); lastDrawn = key; }
