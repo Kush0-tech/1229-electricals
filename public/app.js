@@ -90,7 +90,7 @@
     const A = nearest(a);
     if (!A) return;
     paint(A, 1);
-    if (t > 0.03) {
+    if (t > 0.01) {
       const B = nearest(Math.min(a + 1, TOTAL - 1));
       if (B && B !== A) paint(B, t);
     }
@@ -119,9 +119,9 @@
   function loop(now) {
     const dt = Math.min(0.05, (now - lastT) / 1000 || 0.016); lastT = now;
     // time-based easing: same feel at 60Hz and 120Hz, glides to a stop when scrolling stops
-    cur += (target - cur) * (reduce ? 1 : 1 - Math.exp(-dt * 9));
-    if (Math.abs(target - cur) < 0.004) cur = target;
-    const key = Math.round(cur * 40);
+    cur += (target - cur) * (reduce ? 1 : 1 - Math.exp(-dt * 5.5));
+    if (Math.abs(target - cur) < 0.002) cur = target;
+    const key = Math.round(cur * 100);
     if (key !== lastDrawn && started) { draw(cur); lastDrawn = key; }
     requestAnimationFrame(loop);
   }
@@ -129,7 +129,7 @@
   function tryStart() {
     if (started || coarseDone < coarse.length || !contentReady) return;
     started = true;
-    resize(); onScroll(); cur = target; draw(cur); lastDrawn = Math.round(cur * 40);
+    resize(); onScroll(); cur = target; draw(cur); lastDrawn = Math.round(cur * 100);
     const L = $('#loader');
     L.classList.add('done');
     document.body.classList.remove('loading');
@@ -285,7 +285,7 @@
     const id = a.getAttribute('href'); if (id.length > 1 && $(id)) { e.preventDefault(); scrollToEl(id); }
   }));
   if (window.Lenis && !reduce) {
-    const lenis = window.lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 0.9 });
+    const lenis = window.lenis = new Lenis({ lerp: 0.075, wheelMultiplier: 0.9 });
     lenis.on('scroll', () => { onScroll(); parallax(); });
     const raf = t => { lenis.raf(t); requestAnimationFrame(raf); };
     requestAnimationFrame(raf);
