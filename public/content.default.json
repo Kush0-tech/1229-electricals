@@ -1,0 +1,242 @@
+{
+  "brand": {
+    "name": "1229 Electricals",
+    "legal": "1229 Electricals (Pvt) Ltd",
+    "tagline": "Powering your world, protecting your home, and never leaving you in the dark.",
+    "phones": [
+      "+263 771 983 736",
+      "+263 789 641 958"
+    ],
+    "whatsapp": "263771983736",
+    "address": "Shop 28, Free Africa Mall, Gweru, Zimbabwe",
+    "social": "1229electricals",
+    "accent": "#ff5a1f"
+  },
+  "hero": {
+    "chapters": [
+      {
+        "at": 0,
+        "kicker": "Gweru · Zimbabwe",
+        "title": "Pulse & Perfection",
+        "text": "Electrical, solar and finishing work under one roof. Powering your world, protecting your home, never leaving you in the dark."
+      },
+      {
+        "at": 0.1,
+        "kicker": "01 — Electrical",
+        "title": "Wired right. Wired once.",
+        "text": "House wiring, tubing, DB boards and repairs done to the strictest safety standards. No shortcuts, ever."
+      },
+      {
+        "at": 0.2,
+        "kicker": "02 — Solar",
+        "title": "Let the sun do the work.",
+        "text": "Panels, inverters and batteries sized for your home, farm or business, installed and maintained by us."
+      },
+      {
+        "at": 0.31,
+        "kicker": "03 — Boreholes",
+        "title": "Water on demand.",
+        "text": "Pumps, tanks and filtration so your supply never runs dry."
+      },
+      {
+        "at": 0.43,
+        "kicker": "04 — Ceilings",
+        "title": "Where light meets design.",
+        "text": "PVC, Rhino board and decorative suspended ceilings with lighting integrated from day one."
+      },
+      {
+        "at": 0.55,
+        "kicker": "05 — Security",
+        "title": "Gates, fences, eyes.",
+        "text": "Gate motors, electric fences, razor wire, CCTV, alarms and intercoms. Protected end to end."
+      },
+      {
+        "at": 0.76,
+        "kicker": "06 — Appliances",
+        "title": "Fixed and supplied.",
+        "text": "We install, maintain and repair washing machines, microwaves, air conditioners and more."
+      },
+      {
+        "at": 0.9,
+        "kicker": "Your turn",
+        "title": "Never in the dark.",
+        "text": "Tell us what you need. We will come back with a clear quote and flexible payments."
+      }
+    ]
+  },
+  "about": {
+    "title": "The gap between wiring and the future.",
+    "text": "Based in the heart of Gweru, 1229 Electricals is a premier Zimbabwean provider of specialised electrical, solar and appliance solutions. We bridge the gap between traditional electrical contracting and modern renewable energy technology, serving residential, commercial and agricultural clients with a commitment to safety, efficiency and long-term sustainability.",
+    "mission": "To provide Gweru and the wider Zimbabwe region with safe, high-quality electrical and solar solutions through expert workmanship, technical integrity, and a commitment to protecting our clients' property and investments.",
+    "vision": "To be the most trusted and influential energy partner in the Midlands and Zimbabwe, recognised for transforming Gweru into a hub of modern electrical safety and solar innovation by 2030.",
+    "promise": "We do not take shortcuts. Whether it's tubing a new house or repairing a sensitive appliance, we adhere strictly to the highest electrical safety standards to ensure the longevity of your property."
+  },
+  "pulse": {
+    "pulseTitle": "The Pulse",
+    "pulseText": "Electrical and solar systems are the pulse of a building. We design, install and maintain them with technical integrity.",
+    "perfectionTitle": "The Perfection",
+    "perfectionText": "Our Ceiling Division is the finish. By handling ceilings and electrical together, lighting, chandeliers and solar-powered fixtures are integrated into the design from day one, with no damage from outside contractors.",
+    "imgPulse": "/img/wiring.webp",
+    "imgPerfection": "/img/ceiling.webp"
+  },
+  "packages": [
+    {
+      "id": "solar",
+      "title": "Solar Systems",
+      "tag": "Fix & Supply",
+      "blurb": "Complete solar packages sized for your home, business or farm, from panels and inverters to batteries and installation.",
+      "features": [
+        "Site survey and system sizing",
+        "Inverter, panel and battery supply",
+        "Professional installation and testing",
+        "Maintenance and upgrades"
+      ],
+      "media": [
+        {
+          "type": "image",
+          "src": "/img/solar-roof.webp"
+        },
+        {
+          "type": "image",
+          "src": "/img/vid_0.webp"
+        }
+      ]
+    },
+    {
+      "id": "wiring",
+      "title": "House Wiring & Tubing",
+      "tag": "Electrical",
+      "blurb": "New builds, rewires and repairs. Clean tubing, correct protection and neat DB boards that last.",
+      "features": [
+        "Full house wiring and tubing",
+        "DB boards and protection",
+        "Fault finding and repairs",
+        "Safety inspection"
+      ],
+      "media": [
+        {
+          "type": "image",
+          "src": "/img/wiring.webp"
+        },
+        {
+          "type": "image",
+          "src": "/img/vid_40.webp"
+        }
+      ]
+    },
+    {
+      "id": "boreholes",
+      "title": "Boreholes & Water",
+      "tag": "Water",
+      "blurb": "Reliable water supply: borehole support, pumps, tanks, filters and the electrical work that runs them.",
+      "features": [
+        "Pump supply and installation",
+        "Tanks and plumbing connections",
+        "Filtration",
+        "Solar-powered pumping"
+      ],
+      "media": [
+        {
+          "type": "image",
+          "src": "/img/vid_80.webp"
+        },
+        {
+          "type": "image",
+          "src": "/img/vid_100.webp"
+        }
+      ]
+    },
+    {
+      "id": "ceilings",
+      "title": "Ceiling Systems",
+      "tag": "Customised",
+      "blurb": "PVC, Rhino board and decorative suspended ceilings with lighting built in from the start.",
+      "features": [
+        "PVC and Rhino board ceilings",
+        "Decorative suspended designs",
+        "Integrated lighting and chandeliers",
+        "One team for ceiling and wiring"
+      ],
+      "media": [
+        {
+          "type": "image",
+          "src": "/img/ceiling.webp"
+        },
+        {
+          "type": "image",
+          "src": "/img/vid_120.webp"
+        }
+      ]
+    },
+    {
+      "id": "security",
+      "title": "Gates, Fences & CCTV",
+      "tag": "Security",
+      "blurb": "Keep your property protected with automated gates, electric fencing, cameras, alarms and intercoms.",
+      "features": [
+        "Gate motors",
+        "Electric fence and razor wire",
+        "CCTV, alarms and intercoms",
+        "Service and repairs"
+      ],
+      "media": [
+        {
+          "type": "image",
+          "src": "/img/vid_160.webp"
+        },
+        {
+          "type": "image",
+          "src": "/img/house-night.webp"
+        }
+      ]
+    },
+    {
+      "id": "appliances",
+      "title": "Home & Office Appliances",
+      "tag": "Install · Maintain · Repair",
+      "blurb": "We install, maintain and repair the appliances you rely on every day.",
+      "features": [
+        "Washing machines and microwaves",
+        "Air conditioning",
+        "Lighting systems",
+        "Supply, fitting and repairs"
+      ],
+      "media": [
+        {
+          "type": "image",
+          "src": "/img/vid_200.webp"
+        },
+        {
+          "type": "image",
+          "src": "/img/kitchen.webp"
+        },
+        {
+          "type": "image",
+          "src": "/img/vid_230.webp"
+        }
+      ]
+    }
+  ],
+  "values": [
+    {
+      "title": "Safety first",
+      "text": "Every job meets the highest electrical safety standards."
+    },
+    {
+      "title": "Technical integrity",
+      "text": "Expert workmanship. We do it properly or we do not do it."
+    },
+    {
+      "title": "Protecting investments",
+      "text": "Your property and equipment are treated as our own."
+    },
+    {
+      "title": "Long-term thinking",
+      "text": "Efficient, sustainable systems built to last."
+    }
+  ],
+  "payments": {
+    "title": "Flexible payments for a stress-free experience.",
+    "text": "Tell us what you need and we will come back with a clear quote and a payment plan that fits."
+  }
+}

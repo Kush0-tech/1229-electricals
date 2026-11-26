@@ -1,0 +1,2 @@
+ADMIN_PASSWORD=choose-a-strong-admin-password
+AUTH_SECRET=paste-any-long-random-string

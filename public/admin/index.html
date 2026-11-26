@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>1229 Admin</title>
+<style>
+@font-face{font-family:"Instrument Sans";font-weight:400;src:url(/fonts/instrument-sans-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:"Instrument Sans";font-weight:600;src:url(/fonts/instrument-sans-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:"Bricolage Grotesque";font-weight:800;src:url(/fonts/bricolage-grotesque-latin-800-normal.woff2) format("woff2")}
+:root{--bg:#0e0e10;--card:#18181c;--ink:#f2efe9;--mute:#9a968f;--line:#ffffff1c;--acc:#ff5a1f;--ok:#3ecf8e}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.5 "Instrument Sans",system-ui,sans-serif;min-height:100vh}
+h1,h2{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;letter-spacing:-.02em}
+input,textarea,select,button{font:inherit;color:inherit}
+input,textarea,select{width:100%;background:#0e0e10;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
+textarea{resize:vertical;min-height:70px}
+label{display:grid;gap:5px;font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 14px;font-weight:600}
+button:hover{border-color:var(--acc)}
+.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.dng{color:#ff6b6b}
+#login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.lbox{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:32px;width:min(380px,100%);display:grid;gap:16px}
+.lbox h1{font-size:34px}
+#app{display:none}
+.top{position:sticky;top:0;z-index:20;background:rgba(14,14,16,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:12px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.top h2{font-size:22px;margin-right:auto}
+.tabs{display:flex;gap:6px;padding:12px 18px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.tabs button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+main{padding:18px;max-width:1000px;margin:auto;display:grid;gap:16px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:14px}
+.row{display:grid;gap:12px}
+@media(min-width:700px){.row.two{grid-template-columns:1fr 1fr}}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.media{display:flex;gap:10px;flex-wrap:wrap}
+.mi{width:120px;background:#0e0e10;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:grid}
+.mi img,.mi video{width:100%;aspect-ratio:4/3;object-fit:cover;background:#000}
+.mi div{display:flex;justify-content:space-between;padding:4px}
+.mi button{padding:3px 8px;font-size:12px}
+.note{color:var(--mute);font-size:13px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#fff;color:#111;padding:12px 20px;border-radius:99px;font-weight:600;z-index:60;display:none;max-width:90vw}
+.lib{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:50;display:none;padding:20px;overflow:auto}
+.lib .in{max-width:900px;margin:auto;background:var(--card);border-radius:16px;padding:18px;display:grid;gap:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.lead{background:#0e0e10;border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:4px}
+.prog{height:6px;background:#ffffff1c;border-radius:6px;overflow:hidden}.prog i{display:block;height:100%;width:0;background:var(--acc)}
+</style>
+</head>
+<body>
+<div id="login">
+  <form class="lbox" id="lf">
+    <h1>1229 Admin</h1>
+    <p class="note">Enter the admin password to manage the website.</p>
+    <label>Password<input type="password" id="pw" autocomplete="current-password" autofocus></label>
+    <button class="pri" type="submit">Sign in</button>
+    <p class="note" id="lmsg" role="status"></p>
+  </form>
+</div>
+
+<div id="app">
+  <div class="top"><h2>1229 Admin</h2>
+    <a href="/" target="_blank" style="color:var(--mute)">View site ↗</a>
+    <button id="save" class="pri">Save changes</button>
+    <button id="out">Sign out</button>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <main id="main"></main>
+</div>
+
+<div class="lib" id="lib"><div class="in"><div class="bar"><h2 style="margin-right:auto;font-size:20px">Media library</h2><button id="libX">Close</button></div><div class="grid" id="libGrid"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const H = { 'x-requested-with': 'admin' };
+let C = null, tab = 'packages', dirty = false;
+const toast = (m, ms = 2600) => { const t = $('#toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(toast._t); toast._t = setTimeout(() => t.style.display = 'none', ms); };
+const api = async (u, o = {}) => {
+  const r = await fetch(u, { ...o, headers: { ...H, ...(o.headers || {}) }, credentials: 'same-origin' });
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 401 && !u.includes('/login')) { showLogin(); throw new Error('Session expired. Please sign in again.'); }
+  if (!r.ok) throw new Error(d.error || 'Request failed');
+  return d;
+};
+const el = (t, a = {}, k = []) => { const e = document.createElement(t); for (const x in a) x === 'class' ? e.className = a[x] : x === 'text' ? e.textContent = a[x] : e.setAttribute(x, a[x]); [].concat(k).forEach(c => c && e.append(c)); return e; };
+
+/* ---------- login ---------- */
+function showLogin() { $('#app').style.display = 'none'; $('#login').style.display = 'grid'; }
+$('#lf').addEventListener('submit', async e => {
+  e.preventDefault(); $('#lmsg').textContent = 'Checking…';
+  try {
+    await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: $('#pw').value }) });
+    await boot();
+  } catch (err) { $('#lmsg').textContent = err.message; }
+});
+$('#out').onclick = async () => { await fetch('/api/admin/logout', { headers: H }); location.reload(); };
+
+async function boot() {
+  let r = await fetch('/api/content'); if (!r.ok) r = await fetch('/content.default.json');
+  C = await r.json();
+  $('#login').style.display = 'none'; $('#app').style.display = 'block';
+  drawTabs(); draw();
+}
+
+/* ---------- save ---------- */
+$('#save').onclick = async () => {
+  try { await api('/api/admin/content', { method: 'PUT', body: JSON.stringify(C) }); dirty = false; toast('Saved. The live site updates within seconds.'); }
+  catch (e) { toast('Save failed: ' + e.message, 4000); }
+};
+addEventListener('beforeunload', e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- form helpers ---------- */
+const input = (obj, key, label, type = 'text') => {
+  const i = type === 'area' ? el('textarea') : el('input', { type });
+  i.value = obj[key] ?? ''; i.oninput = () => { obj[key] = i.value; dirty = true; };
+  return el('label', { text: label }, i);
+};
+const lines = (obj, key, label) => {
+  const i = el('textarea'); i.value = (obj[key] || []).join('\n');
+  i.oninput = () => { obj[key] = i.value.split('\n').map(s => s.trim()).filter(Boolean); dirty = true; };
+  return el('label', { text: label + ' (one per line)' }, i);
+};
+const move = (arr, i, d) => { const j = i + d; if (j < 0 || j >= arr.length) return; [arr[i], arr[j]] = [arr[j], arr[i]]; dirty = true; draw(); };
+
+/* ---------- media upload + optimise ---------- */
+const blobFrom = (cv, type, q) => new Promise(r => cv.toBlob(r, type, q));
+async function optimiseImage(file) {
+  if (file.type === 'image/gif' || file.type === 'image/svg+xml') return file;
+  const bmp = await createImageBitmap(file);
+  const s = Math.min(1, 1920 / Math.max(bmp.width, bmp.height));
+  const cv = document.createElement('canvas'); cv.width = Math.round(bmp.width * s); cv.height = Math.round(bmp.height * s);
+  cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+  const out = await blobFrom(cv, 'image/webp', 0.8);
+  return out && out.type === 'image/webp' && out.size < file.size ? out : file;
+}
+async function posterOf(v) {
+  const cv = document.createElement('canvas'); cv.width = 960; cv.height = Math.round(960 * v.videoHeight / v.videoWidth) || 540;
+  cv.getContext('2d').drawImage(v, 0, 0, cv.width, cv.height);
+  return blobFrom(cv, 'image/webp', 0.75);
+}
+function loadVideo(file) {
+  return new Promise((res, rej) => {
+    const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto';
+    v.src = URL.createObjectURL(file); v.onloadeddata = () => res(v); v.onerror = () => rej(new Error('Cannot read video'));
+  });
+}
+async function optimiseVideo(file, v, pg) {
+  const big = Math.max(v.videoWidth, v.videoHeight);
+  if (file.size < 6e6 && big <= 1280) return file;                   // already small
+  if (v.duration > 75 || !window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) return file;
+  const s = Math.min(1, 1280 / big), W = Math.round(v.videoWidth * s / 2) * 2, Hh = Math.round(v.videoHeight * s / 2) * 2;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = Hh; const g = cv.getContext('2d');
+  const mime = ['video/mp4;codecs=avc1.42E01E', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find(m => MediaRecorder.isTypeSupported(m));
+  if (!mime) return file;
+  const rec = new MediaRecorder(cv.captureStream(30), { mimeType: mime, videoBitsPerSecond: 2200000 });
+  const chunks = []; rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+  const done = new Promise(r => rec.onstop = r);
+  v.currentTime = 0; rec.start(500); await v.play();
+  await new Promise(r => { const tick = () => { g.drawImage(v, 0, 0, W, Hh); pg(v.currentTime / v.duration); v.ended ? r() : requestAnimationFrame(tick); }; tick(); });
+  rec.stop(); await done;
+  const out = new Blob(chunks, { type: mime.split(';')[0] });
+  return out.size && out.size < file.size ? out : file;
+}
+async function send(blob, name) {
+  const r = await fetch('/api/admin/upload?name=' + encodeURIComponent(name), { method: 'POST', headers: { ...H, 'content-type': blob.type }, body: blob, credentials: 'same-origin' });
+  const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error || 'Upload failed'); return d;
+}
+// returns {type, src, poster?}
+async function upload(file, bar) {
+  const pg = f => bar && (bar.firstChild.style.width = Math.round(f * 100) + '%');
+  const base = file.name;
+  if (file.type.startsWith('image/')) { toast('Optimising image…', 8000); const b = await optimiseImage(file); const d = await send(b, base); return { type: 'image', src: d.url }; }
+  if (file.type.startsWith('video/')) {
+    const v = await loadVideo(file); toast('Preparing video. Keep this tab open…', 60000);
+    const poster = await posterOf(v);
+    const b = await optimiseVideo(file, v, pg);
+    const d = await send(b, base); const p = poster ? await send(poster, base + '-poster') : null;
+    return { type: 'video', src: d.url, poster: p && p.url };
+  }
+  throw new Error('Only images and videos are supported');
+}
+function uploader(onDone, accept = 'image/*,video/*', multiple = true) {
+  const bar = el('div', { class: 'prog', style: 'display:none;flex:1;min-width:80px' }, el('i'));
+  const f = el('input', { type: 'file', accept, style: 'display:none' }); if (multiple) f.multiple = true;
+  const b = el('button', { text: '+ Upload' });
+  b.onclick = () => f.click();
+  f.onchange = async () => {
+    b.disabled = true; bar.style.display = 'block';
+    try { for (const file of f.files) { bar.firstChild.style.width = '0'; onDone(await upload(file, bar)); } toast('Uploaded'); }
+    catch (e) { toast(e.message, 4500); }
+    b.disabled = false; bar.style.display = 'none'; f.value = '';
+  };
+  return [b, f, bar];
+}
+function pick(cb, imagesOnly) {
+  $('#lib').style.display = 'block';
+  const g = $('#libGrid'); g.replaceChildren(el('p', { class: 'note', text: 'Loading…' }));
+  api('/api/admin/media').then(d => {
+    g.replaceChildren(...(d.items.filter(i => !imagesOnly || i.type === 'image').map(i => {
+      const m = i.type === 'video' ? el('video', { src: i.url, muted: '', preload: 'metadata' }) : el('img', { src: i.url, loading: 'lazy' });
+      const c = el('div', { class: 'mi' }, [m, el('div', {}, [el('button', { text: 'Use' })])]);
+      c.querySelector('button').onclick = () => { $('#lib').style.display = 'none'; cb({ type: i.type, src: i.url }); };
+      return c;
+    })));
+    if (!g.children.length) g.append(el('p', { class: 'note', text: 'No uploads yet.' }));
+  });
+}
+$('#libX').onclick = () => $('#lib').style.display = 'none';
+
+const imgField = (obj, key, label) => {
+  const i = el('input'); i.value = obj[key] || ''; i.oninput = () => { obj[key] = i.value; dirty = true; };
+  const [ub, uf, ubar] = uploader(r => { obj[key] = r.src; i.value = r.src; dirty = true; thumb.src = r.src; }, 'image/*', false);
+  const lb = el('button', { text: 'Library' }); lb.onclick = () => pick(r => { obj[key] = r.src; i.value = r.src; dirty = true; thumb.src = r.src; }, true);
+  const thumb = el('img', { src: obj[key] || '', style: 'width:90px;height:60px;object-fit:cover;border-radius:8px;background:#000' });
+  return el('label', { text: label }, [i, el('div', { class: 'bar' }, [thumb, ub, lb, uf, ubar])]);
+};
+
+/* ---------- tabs ---------- */
+const TABS = [['packages', 'Packages'], ['hero', 'Hero text'], ['about', 'About & values'], ['brand', 'Contact & brand'], ['library', 'Media'], ['leads', 'Leads']];
+function drawTabs() {
+  $('#tabs').replaceChildren(...TABS.map(([k, n]) => { const b = el('button', { text: n, class: k === tab ? 'on' : '' }); b.onclick = () => { tab = k; drawTabs(); draw(); }; return b; }));
+}
+function draw() {
+  const m = $('#main'); m.replaceChildren();
+  ({ packages, hero, about, brand, library, leads })[tab](m);
+}
+
+function packages(m) {
+  m.append(el('p', { class: 'note', text: 'Each package can hold as many photos and videos as you like. Videos autoplay muted on the site. Images are converted to WebP and resized automatically.' }));
+  C.packages.forEach((p, i) => {
+    const mediaBox = el('div', { class: 'media' });
+    const redraw = () => {
+      mediaBox.replaceChildren(...(p.media || []).map((x, k) => {
+        const v = x.type === 'video' ? el('video', { src: x.src, muted: '', autoplay: '', loop: '', playsinline: '' }) : el('img', { src: x.src });
+        if (v.tagName === 'VIDEO') v.muted = true;
+        const bt = (t, f) => { const b = el('button', { text: t }); b.onclick = f; return b; };
+        return el('div', { class: 'mi' }, [v, el('div', {}, [
+          bt('←', () => { move(p.media, k, -1); }), bt('✕', () => { p.media.splice(k, 1); dirty = true; draw(); }), bt('→', () => { move(p.media, k, 1); })])]);
+      }));
+    };
+    redraw(); p.media = p.media || [];
+    const [ub, uf, ubar] = uploader(r => { p.media.push(r); dirty = true; redraw(); });
+    const lb = el('button', { text: 'From library' }); lb.onclick = () => pick(r => { p.media.push(r); dirty = true; redraw(); });
+    const del = el('button', { text: 'Delete package', class: 'dng' }); del.onclick = () => { if (confirm('Delete "' + p.title + '"?')) { C.packages.splice(i, 1); dirty = true; draw(); } };
+    const up = el('button', { text: '↑ Move up' }); up.onclick = () => move(C.packages, i, -1);
+    const dn = el('button', { text: '↓ Move down' }); dn.onclick = () => move(C.packages, i, 1);
+    m.append(el('section', { class: 'box' }, [
+      el('div', { class: 'row two' }, [input(p, 'title', 'Title'), input(p, 'tag', 'Tag')]),
+      input(p, 'blurb', 'Short description', 'area'), lines(p, 'features', 'Features'),
+      el('div', {}, [el('span', { class: 'note', text: 'Photos & videos (' + p.media.length + ')' })]), mediaBox,
+      el('div', { class: 'bar' }, [ub, lb, uf, ubar, el('span', { style: 'flex:1' }), up, dn, del])
+    ]));
+  });
+  const add = el('button', { text: '+ Add package', class: 'pri' });
+  add.onclick = () => { C.packages.push({ id: 'p' + Date.now(), title: 'New package', tag: '', blurb: '', features: [], media: [] }); dirty = true; draw(); scrollTo(0, document.body.scrollHeight); };
+  m.append(add);
+}
+function hero(m) {
+  m.append(el('p', { class: 'note', text: 'The eight scroll chapters follow the hero video in order. Edit the words here; the timing is tied to the video scenes.' }));
+  C.hero.chapters.forEach((c, i) => m.append(el('section', { class: 'box' }, [el('div', { class: 'row two' }, [input(c, 'kicker', 'Chapter ' + (i + 1) + ' label'), input(c, 'title', 'Headline')]), input(c, 'text', 'Text', 'area')])));
+}
+function about(m) {
+  m.append(el('section', { class: 'box' }, [input(C.about, 'title', 'Headline'), input(C.about, 'text', 'Intro', 'area'), input(C.about, 'mission', 'Mission', 'area'), input(C.about, 'vision', 'Vision', 'area'), input(C.about, 'promise', 'Brand promise', 'area')]));
+  m.append(el('section', { class: 'box' }, [el('h2', { text: 'Pulse & Perfection', style: 'font-size:20px' }),
+    el('div', { class: 'row two' }, [input(C.pulse, 'pulseTitle', 'Left title'), input(C.pulse, 'perfectionTitle', 'Right title')]),
+    el('div', { class: 'row two' }, [input(C.pulse, 'pulseText', 'Left text', 'area'), input(C.pulse, 'perfectionText', 'Right text', 'area')]),
+    el('div', { class: 'row two' }, [imgField(C.pulse, 'imgPulse', 'Left image'), imgField(C.pulse, 'imgPerfection', 'Right image')])]));
+  C.values.forEach((v, i) => {
+    const d = el('button', { text: 'Remove', class: 'dng' }); d.onclick = () => { C.values.splice(i, 1); dirty = true; draw(); };
+    m.append(el('section', { class: 'box' }, [el('div', { class: 'row two' }, [input(v, 'title', 'Value'), input(v, 'text', 'Description')]), el('div', { class: 'bar' }, [d])]));
+  });
+  const a = el('button', { text: '+ Add value' }); a.onclick = () => { C.values.push({ title: '', text: '' }); dirty = true; draw(); }; m.append(a);
+  m.append(el('section', { class: 'box' }, [el('h2', { text: 'Quote section', style: 'font-size:20px' }), input(C.payments, 'title', 'Headline'), input(C.payments, 'text', 'Text', 'area')]));
+}
+function brand(m) {
+  const b = C.brand;
+  const ph = el('textarea'); ph.value = b.phones.join('\n'); ph.oninput = () => { b.phones = ph.value.split('\n').map(s => s.trim()).filter(Boolean); dirty = true; };
+  const col = el('input', { type: 'color' }); col.value = b.accent || '#ff5a1f'; col.oninput = () => { b.accent = col.value; dirty = true; };
+  m.append(el('section', { class: 'box' }, [
+    el('div', { class: 'row two' }, [input(b, 'name', 'Display name'), input(b, 'legal', 'Legal name')]),
+    input(b, 'tagline', 'Tagline'), el('label', { text: 'Phone numbers (one per line)' }, ph),
+    el('div', { class: 'row two' }, [input(b, 'whatsapp', 'WhatsApp number (digits only, with country code)'), input(b, 'social', 'Social handle')]),
+    input(b, 'address', 'Address'), el('label', { text: 'Accent colour' }, col)]));
+}
+async function library(m) {
+  const [ub, uf, ubar] = uploader(() => library2());
+  const box = el('section', { class: 'box' }); m.append(box);
+  const library2 = async () => {
+    const d = await api('/api/admin/media');
+    box.replaceChildren(el('div', { class: 'bar' }, [ub, uf, ubar, el('span', { class: 'note', text: d.items.length + ' files' })]),
+      el('div', { class: 'grid' }, d.items.map(i => {
+        const v = i.type === 'video' ? el('video', { src: i.url, muted: '', preload: 'metadata', controls: '' }) : el('img', { src: i.url, loading: 'lazy' });
+        const cp = el('button', { text: 'Copy URL' }); cp.onclick = () => { navigator.clipboard.writeText(location.origin + i.url); toast('URL copied'); };
+        const dl = el('button', { text: '✕', class: 'dng' }); dl.onclick = async () => { if (confirm('Delete this file? Any package using it will show a broken image.')) { await api('/api/admin/media?key=' + encodeURIComponent(i.key), { method: 'DELETE' }); library2(); } };
+        return el('div', { class: 'mi', style: 'width:auto' }, [v, el('div', {}, [cp, dl]), el('span', { class: 'note', style: 'padding:0 6px 6px', text: (i.size / 1048576).toFixed(2) + ' MB' })]);
+      })));
+  };
+  library2();
+}
+async function leads(m) {
+  const box = el('section', { class: 'box' }, el('p', { class: 'note', text: 'Loading…' })); m.append(box);
+  const d = await api('/api/admin/leads');
+  box.replaceChildren(el('p', { class: 'note', text: d.items.length + ' quote requests' }), ...d.items.map(l => {
+    const x = el('button', { text: 'Delete', class: 'dng' }); x.onclick = async () => { await api('/api/admin/leads?key=' + encodeURIComponent(l.key), { method: 'DELETE' }); draw(); };
+    return el('div', { class: 'lead' }, [el('b', { text: l.name + ' · ' + l.phone }), el('span', { text: l.service }), el('span', { class: 'note', text: l.message }), el('span', { class: 'note', text: new Date(l.at).toLocaleString() }),
+      el('div', { class: 'bar' }, [el('a', { href: 'https://wa.me/' + String(l.phone).replace(/\D/g, ''), target: '_blank', style: 'color:var(--ok)', text: 'WhatsApp' }), x])]);
+  }));
+}
+
+/* auto-login if session cookie exists */
+api('/api/admin/me').then(boot).catch(() => showLogin());
+})();
+</script>
+</body>
+</html>
