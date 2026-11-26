@@ -23,8 +23,8 @@
   });
 
   /* ---------- frame sequence ---------- */
-  const SET = new URLSearchParams(location.search).get('f') === '120' ? 120 : 240;   // ?f=120 loads the older 120-frame set
-  const TOTAL = SET, DIR = SET === 120 ? '/frames/' : (innerWidth >= 1100 ? '/frames240hd/' : '/frames240/');
+  const SET = 240;
+  const TOTAL = SET, DIR = innerWidth >= 1100 ? '/frames240hd/' : '/frames240/';
   const frames = new Array(TOTAL);
   const loaded = [];
   const order = [];
