@@ -250,7 +250,7 @@
     }), { threshold: 0.35 });
     document.querySelectorAll('.pk').forEach(c => io.observe(c));
     if (matchMedia('(hover: none)').matches && !reduce) {
-      setInterval(() => document.querySelectorAll('.pk').forEach(c => { if (c._vis) c.classList.toggle('flip'); }), 3200);
+      document.querySelectorAll('.pk').forEach((c, i) => setTimeout(() => setInterval(() => { if (c._vis) c.classList.toggle('flip'); }, 4200), i * 500));
     }
   }
 
@@ -275,15 +275,30 @@
     $('#mCta').onclick = e => { e.preventDefault(); modal.close(); $('#svcSel').value = p.title; scrollToEl('#quote'); };
     modal.showModal();
     window.lenis && window.lenis.stop();
+    startAuto();
     gal.querySelectorAll('video').forEach(v => v.play().catch(() => {}));
   }
-  $('#mGal').addEventListener('scroll', () => {
-    const g = $('#mGal'), k = Math.round(g.scrollLeft / g.clientWidth);
+  let auto = null, resume = null;
+  const slideCount = () => $('#mGal').children.length;
+  const goTo = k => { const g = $('#mGal'); g.scrollTo({ left: k * g.clientWidth, behavior: 'smooth' }); };
+  const curSlide = () => { const g = $('#mGal'); return Math.round(g.scrollLeft / g.clientWidth); };
+  function startAuto() {
+    stopAuto();
+    if (slideCount() < 2 || reduce) return;
+    auto = setInterval(() => goTo((curSlide() + 1) % slideCount()), 3800);
+  }
+  function stopAuto() { clearInterval(auto); auto = null; }
+  function pauseThenResume() { stopAuto(); clearTimeout(resume); resume = setTimeout(startAuto, 7000); }  // user swiped: hold, then carry on
+  const gal = $('#mGal');
+  gal.addEventListener('scroll', () => {
+    const k = curSlide();
     [...$('#mDots').children].forEach((d, i) => d.classList.toggle('on', i === k));
   }, { passive: true });
+  ['touchstart', 'pointerdown', 'wheel'].forEach(ev => gal.addEventListener(ev, pauseThenResume, { passive: true }));
+  $('#mDots').addEventListener('click', e => { const i = [...$('#mDots').children].indexOf(e.target); if (i > -1) { pauseThenResume(); goTo(i); } });
   $('#mClose').addEventListener('click', () => modal.close());
   modal.addEventListener('click', e => { if (e.target === modal) modal.close(); });
-  modal.addEventListener('close', () => { window.lenis && window.lenis.start(); $('#mGal').querySelectorAll('video').forEach(v => v.pause()); });
+  modal.addEventListener('close', () => { stopAuto(); clearTimeout(resume); window.lenis && window.lenis.start(); $('#mGal').querySelectorAll('video').forEach(v => v.pause()); });
 
   /* ---------- reveal + parallax ---------- */
   function initReveal() {
